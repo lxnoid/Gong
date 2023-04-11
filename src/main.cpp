@@ -12,6 +12,7 @@ int  mqttPort            = 0;
 char mqttUser[1024]      = "";
 char mqttPassword[1024]  = "";
 char mqttClientId[1024]  = "";
+char printbuffer[1024]      = "";  
 
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
@@ -134,7 +135,7 @@ bool first_Time = false;
 
 unsigned long act_time = 0;
 unsigned long prev_time = 0;
-
+unsigned long next_time = 0;
 
 // the loop routine runs over and over again forever:
 void loop() {
@@ -160,14 +161,17 @@ void loop() {
   act_time = millis();
 
   //check for 0.22 V change on ADC each 100ms
-  if ((act_time - prev_time) > 100)
+  if ((((long)act_time - (long)next_time) > 0) && ((act_time - prev_time) > 100))
   {
     adc_read_act = analogRead(A0);
-    Serial.println(adc_read_act);
+    snprintf(printbuffer, sizeof(printbuffer), "ADC: %d | time: %ld | next: %ld | prev: %ld | diff: %ld", adc_read_act, act_time, next_time, prev_time, (act_time - next_time));
+    Serial.println(printbuffer);
+
     // 3.3V equals 1024 units, therefore 45 units is roughly the value change we're looking for.
     if ((adc_read_act - adc_read_prev) > 45)
     {
       trigger_gong = true;
+      next_time = act_time + 125000;
     }
     
     //store past time timer and adc value
@@ -180,6 +184,5 @@ void loop() {
     mqtt_client.publish("misc/gong/cmd","Gong!", true);
     trigger_gong = false;
     //suppress impact of flashing of P2_LED for 125 sec.
-    delay(125000);
   } 
 }
