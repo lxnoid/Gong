@@ -160,18 +160,18 @@ void loop() {
   //get time passed since boot in ms
   act_time = millis();
 
-  //check for 0.22 V change on ADC each 100ms
-  if ((((long)act_time - (long)next_time) > 0) && ((act_time - prev_time) > 100))
+  //check for 0.22 V change on ADC each 200ms
+  if ((act_time - prev_time) > 200)
   {
     adc_read_act = analogRead(A0);
     snprintf(printbuffer, sizeof(printbuffer), "ADC: %d | time: %ld | next: %ld | prev: %ld | diff: %ld", adc_read_act, act_time, next_time, prev_time, (act_time - next_time));
     Serial.println(printbuffer);
 
     // 3.3V equals 1024 units, therefore 45 units is roughly the value change we're looking for.
-    if ((adc_read_act - adc_read_prev) > 45)
+    if ((((long)act_time - (long)next_time) > 0) && !trigger_gong && ((adc_read_act - adc_read_prev) > 45))
     {
       trigger_gong = true;
-      next_time = act_time + 125000;
+      next_time = act_time + 125000; //suppress impact of flashing of P2_LED for 125 sec.
     }
     
     //store past time timer and adc value
@@ -183,6 +183,5 @@ void loop() {
   {
     mqtt_client.publish("misc/gong/cmd","Gong!", true);
     trigger_gong = false;
-    //suppress impact of flashing of P2_LED for 125 sec.
   } 
 }
