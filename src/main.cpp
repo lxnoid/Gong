@@ -177,9 +177,9 @@ void loop() {
 
   if (trigger_gong) 
   {
+    mqtt_client.publish("misc/gong/cmd","Gong!", true);
     trigger_gong = false;
     //suppress impact of flashing of P2_LED for 125 sec.
     delay(125000);
-    }
- 
+  } 
 }
