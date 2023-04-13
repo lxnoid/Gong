@@ -121,7 +121,7 @@ void setup() {
 
 boolean mqtt_reconnect() {
   if (mqtt_client.connect(mqttClientId, mqttUser, mqttPassword )) {
-    mqtt_client.publish("misc/gong/cmd","Hello World, again", true);
+    mqtt_client.publish("misc/gong/cmd","Hello World, again", false);
   }
   return mqtt_client.connected();
 }
@@ -168,7 +168,7 @@ void loop() {
     Serial.println(printbuffer);
 
     // 3.3V equals 1024 units, therefore 45 units is roughly the value change we're looking for.
-    if ((((long)act_time - (long)next_time) > 0) && !trigger_gong && ((adc_read_act - adc_read_prev) > 45))
+    if ((((long)act_time - (long)next_time) > 0) && !trigger_gong && ((adc_read_act - adc_read_prev) > 10))
     {
       trigger_gong = true;
       next_time = act_time + 125000; //suppress impact of flashing of P2_LED for 125 sec.
@@ -181,7 +181,8 @@ void loop() {
 
   if (trigger_gong) 
   {
-    mqtt_client.publish("misc/gong/cmd","Gong!", true);
+    mqtt_client.publish("misc/gong/cmd","Gong!", false);
+    Serial.println("Gong!");
     trigger_gong = false;
   } 
 }
